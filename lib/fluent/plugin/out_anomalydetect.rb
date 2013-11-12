@@ -174,7 +174,7 @@ module Fluent
             else
               filtered = flushed.map {|record| record[@target] }.compact
               return nil if filtered.empty?
-              filtered.inject(:+).to_f / filtered.size
+              filtered.inject(0) {|result, item| result + item.to_f }.to_f / filtered.size
             end
 
       outlier = @outlier.next(val)
