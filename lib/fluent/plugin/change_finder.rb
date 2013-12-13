@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+require "nmatrix"
+
 module Fluent
   class ChangeFinder
     require 'matrix'
@@ -20,22 +23,21 @@ module Fluent
       @mu = (1 - @r) * @mu + @r * x
 
       # update @c
-      c = @sigma
       for j in 0..(@term - 1)
         if @data[len - 1 - j]
           @c[j] = (1 - @r) * @c[j] + @r * (x - @mu) * (@data[len - 1 - j] - @mu) 
         end
       end
-      
-      cc = Matrix.zero(@term).to_a
+
+      cc = NMatrix.zeros(@term)
       for j in 0..(@term - 1)
         for i in j..(@term - 1)
-          cc[j][i] = cc[i][j] = @c[i - j]
+          cc[j,i] = cc[i,j] = @c[i - j]
         end
       end
-      w = (Matrix.rows(cc).inv * Vector.elements(@c)).to_a
+      w = cc.invert.dot NMatrix.new([@term, 1], @c)
       xt = @data.each.with_index.inject(@mu) do |sum, (v, idx)|
-        sum += w[idx] * (v - @mu)
+        sum += w[idx,0] * (v - @mu)
       end
       @sigma = (1 - @r) * @sigma + @r * (x - xt) * (x - xt)
 
